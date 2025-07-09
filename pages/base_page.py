@@ -29,3 +29,6 @@ class BasePage:
         expect(locator).to_be_visible()
         expect(locator).to_be_enabled()
 
+    def wait_for_page_ready(self, state="load", timeout=10000):
+        self.page.wait_for_load_state(state=state, timeout=timeout)
+
