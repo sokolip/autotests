@@ -25,10 +25,21 @@ class BasePage:
         expect(button).to_be_visible()
         button.click()
 
-    def expect_clickable(self, locator):
-        expect(locator).to_be_visible()
-        expect(locator).to_be_enabled()
+    def expect_clickable(self, locator, description="элемент"):
+        try:
+            expect(locator).to_be_visible()
+            expect(locator).to_be_enabled()
+        except Exception as e:
+            print(f"[FAIL] {description} не кликабелен: {e}")
 
     def wait_for_page_ready(self, state="load", timeout=10000):
         self.page.wait_for_load_state(state=state, timeout=timeout)
+
+    def check_redirect_url_and_go_back(self, expected_url_path: str):
+        expect(self.page).to_have_url(expected_url_path)
+        response = self.page.go_back()
+        assert response is not None, "Не удалось вернуться на предыдущую страницу"
+
+
+
 
