@@ -3,6 +3,7 @@ from playwright.sync_api import Page, expect
 import os
 from dotenv import load_dotenv
 from time import sleep
+import allure
 
 load_dotenv()
 
@@ -19,6 +20,7 @@ class LoginPage(BasePage):
         self.password_input = self.page.get_by_placeholder("Пароль")
         self.login_button = self.page.get_by_role("button", name="Далее")
 
+    @allure.step("Открываем главную стрраницу")
     def open_login_page(self):
         self.open_page(BASE_URL)
         self.wait_for_page_ready("load")
@@ -27,26 +29,31 @@ class LoginPage(BasePage):
         self.wait_for_page_ready("load")
         expect(self.page.get_by_text("Вход")).to_be_visible()
 
+    @allure.ster("Открытие окна Авторизация")
     def login_with_username(self):
         self.login_input.fill(TEST_USER)
         self.password_input.fill(TEST_PASSWORD)
         self.login_button.click()
         sleep(30)
 
+    @allure.step("Проверка UI элементов окна авторизации")
     def check_ui_elements(self):
         self.wait_for_page_ready("networkidle")
         assert self.is_visible("//button[@title='google']"), "Кнопка авторизации через Google не отображается"
         self.expect_clickable(self.page.get_by_role("link", name="Регистрация"))
         self.expect_clickable(self.page.get_by_role("link", name="Пользовательского соглашения"))
 
+    @allure.step("Пропускаем 2FA")
     def skip_2fa(self):
         if self.page.get_by_role("button", name="Отказаться").is_visible():
             self.click_button(name="Отказаться")
 
+    @allure.step("Отображение приветственного сообщения")
     def skip_greeting_message(self):
         if self.page.get_by_role("button", name="Закрыть").is_visible():
             self.click_button(name="Закрыть")
 
+    @allure.step("Открытие главной страницы")
     def main_page_is_opened(self):
         try:
             expect(self.page.get_by_text("ivn.sok@yandex.ru")).to_be_visible()
@@ -54,18 +61,3 @@ class LoginPage(BasePage):
         except Exception as e:
             print(f"Ошибка при открытии личного кабинета: {e}")
             raise
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

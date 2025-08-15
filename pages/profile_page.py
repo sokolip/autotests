@@ -72,32 +72,4 @@ class MainPage(BasePage):
     @allure.step("Проверка блока Мои курсы")
     def check_my_courses(self):
         expect(self.page.locator("#onboard_courses")).to_be_visible()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         
-
-
-
-
-
-
-

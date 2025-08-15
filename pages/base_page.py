@@ -40,6 +40,20 @@ class BasePage:
         response = self.page.go_back()
         assert response is not None, "Не удалось вернуться на предыдущую страницу"
 
+    def select_dropdown_option(self, section_title: str, option_text: str, *, timeout=5000):
+        section = self.page.locator(f"xpath=//div[.//div[normalize-space(text())='{section_title}']]")
+        expect(section).to_be_visible(timeout=timeout)
+        trigger = section.locator("button:has(.IconArrowDown)")
+        expect(trigger).to_be_visible(timeout=timeout)
+        trigger.click()
+        listbox = self.page.locator("[role='listbox'], [role='menu'], .Menu, .Dropdown, .Select-Menu").first
+        expect(listbox).to_be_visible(timeout=timeout)
+        option = listbox.get_by_role("option", name=option_text)
+        if option.count() == 0:
+            option = listbox.locator(f"text={option_text}")
+        expect(option).to_be_visible(timeout=timeout)
+        option.click()
+        expect(listbox).not_to_be_visible()
 
 
 
