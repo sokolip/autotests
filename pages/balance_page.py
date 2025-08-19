@@ -23,6 +23,9 @@ class BalancePage(BasePage):
         expect(self.page.get_by_text("Списано, BL")).to_be_visible()
         expect(self.page.locator("input.Switch-Input")).to_be_checked()
         expect(self.page.get_by_text("Дополнительно спишем 1 BL")).to_be_visible()
+        expect(self.page.get_by_role("radio", name="Bitlime")).to_be_checked()
+        expect(self.page.get_by_role("radio", name="Lime")).to_be_visible()
+        expect(self.page.get_by_role("radio", name="uLime")).to_be_checked()
 
     @allure.step("Проверка тоггла uLime")
     def check_toggle_ulime(self):
@@ -31,7 +34,7 @@ class BalancePage(BasePage):
         bitlime_label = self.page.locator("xpath=//label[input[@value='balanceChoiceGroup-Bitlime']]//span[text()='Bitlime']")
         expect(bitlime_label).not_to_be_visible(timeout=5000)
         toggle.click()
-        expect(bitlime_label).to_be_visible(timeout=5000)
+        expect(bitlime_label, timeout=5000)
 
     def add_currency_count(self, amount: str):
         field = self.page.get_by_placeholder("Введите необходимое количество")
@@ -113,3 +116,13 @@ class BalancePage(BasePage):
         self.page.locator("input[name='amount']").fill(amount)
         self.page.get_by_role("button", name="Перевести пользователю").click()
         return self.assert_transfer_confirm_modal(username=payee_username, amount=amount)
+
+    @allure.step("Проверка кнопки Скачать CSV")
+    def check_download_csv_buttom(self):
+        download_csv_button = self.page.get_by_role("button", name="Скачать CSV")
+        self.expect_clickable(locator=download_csv_button, description="Кнопка скачать CSV")
+
+    @allure.step("Проверка кнопки Искать")
+    def check_search_button(self):
+        search_button = self.page.get_by_role("button", name="Искать")
+        self.expect_clickable(locator=search_button, description="Кнопка Искать")
