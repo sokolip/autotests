@@ -1,4 +1,5 @@
 from pages.login_page import LoginPage
+from datetime import sleep
 
 
 def test_login_page(page):
@@ -8,9 +9,3 @@ def test_login_page(page):
     login.login_with_username()
     login.skip_2fa()
     login.skip_greeting_message()
-    login.main_page_is_opened()
-
-
-
-
-

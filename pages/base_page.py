@@ -56,4 +56,14 @@ class BasePage:
         expect(listbox).not_to_be_visible()
 
 
+    #для всех вкладок
+    def check_toast(self, role: str, name: str, appear_timeout: int = 3000, disappear_timeout: int = 8000):
+        toast = self.page.get_by_role(role=role, name=name).first
+        expect(toast).to_be_visible(timeout=appear_timeout)
+        expect(toast).to_be_visible(timeout=disappear_timeout)
 
+    def check_partner_link_button(self) -> None:
+        partner_link_button = self.page.get_by_role("button", name="Скопировать партнёрскую ссылку")
+        self.expect_clickable(locator=partner_link_button, description="Скопировать партнерскую ссылку")
+        partner_link_button.click()
+        self.check_toast(role="status", name="Партнёрская ссылка скопирована")

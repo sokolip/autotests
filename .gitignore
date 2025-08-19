@@ -32,3 +32,8 @@ allure-report/
 *.egg-info/
 dist/
 build/
+
+# Playwright storage state
+auth.json
+*.auth.json
+storage_state*.json

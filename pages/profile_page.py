@@ -2,7 +2,6 @@ from pages.base_page import BasePage
 from playwright.sync_api import Page, expect
 import os
 from dotenv import load_dotenv
-from time import sleep
 import allure
 
 load_dotenv()
@@ -18,15 +17,23 @@ class MainPage(BasePage):
     def check_main_page_ui_element(self):
         expect(self.page.get_by_text(TEST_USER)).to_be_visible()
         expect(self.page.get_by_text(TEST_EMAIL)).to_be_visible()
-        self.expect_clickable(locator="//button[text()='Профиль']").click()
-        self.expect_clickable(locator="//button[text()='Баланс']").click()
-        self.expect_clickable(locator="//button[text()='Статьи']").click()
-        self.expect_clickable(locator="//button[text()='Бонусная программа']").click()
-        self.expect_clickable(locator="//button[text()='Команда']").click()
-        self.expect_clickable(locator="//button[text()='История']").click()
-        self.expect_clickable(locator="//button[text()='Заявки']").click()
-        self.expect_clickable(locator="//button[text()='Профиль']").click()
-        self.expect_clickable(locator="//button[text()='Настройки']").click()
+        self.expect_clickable(locator="//button[text()='Профиль']")
+        self.expect_clickable(locator="//button[text()='Баланс']")
+        self.expect_clickable(locator="//button[text()='Статьи']")
+        self.expect_clickable(locator="//button[text()='Бонусная программа']")
+        self.expect_clickable(locator="//button[text()='Команда']")
+        self.expect_clickable(locator="//button[text()='История']")
+        self.expect_clickable(locator="//button[text()='Заявки']")
+        self.expect_clickable(locator="//button[text()='Профиль']")
+        self.expect_clickable(locator="//button[text()='Настройки']")
+
+    @allure.step("Проверка переключения табов")
+    def check_switch_tabs(self):
+        tabs = ["Профиль", "Баланс", "Статьи", "Бонусная программа", "Команда", "История", "Заявки", "Профиль", "Настройки"]
+        for name in tabs:
+            btn = self.page.get_by_role("button", name=name)
+            btn.click()
+        self.page.get_by_role("button", name='Профиль').click()
 
     @allure.step("Проверка блока Подписка Plus")
     def check_subscription_plus(self):
@@ -48,7 +55,7 @@ class MainPage(BasePage):
 
     @allure.step("Проверка блока с Турнирной таблицей")
     def check_tournament_table(self, username: str):
-        expect(self.page.locator("#onbboard_leagues")).to_be_visible()
+        expect(self.page.locator("#onboard_leagues")).to_be_visible()
         expect(self.page.get_by_text("Турнирная таблица")).to_be_visible()
         expect(self.page.get_by_text(username)).to_be_visible()
 
@@ -62,14 +69,21 @@ class MainPage(BasePage):
 
     @allure.step("Проверка блока Бонусы")
     def check_bonus_block(self):
-        self.page.get_by_text("Бонусы").to_be_visible()
-        self.page.get_by_text("Покупайте опыт").to_be_visible()
-        self.page.get_by_text("Пополняйте баланс").to_be_visible()
-        self.page.get_by_text("Активация партнера").to_be_visible()
-        self.page.get_by_text("Покупка курса").to_be_visible()
-        self.page.get_by_text("Переход на новый уровень бонусной программы").to_be_visible()
+        expect(self.page.get_by_text("Бонусы")).to_be_visible()
+        expect(self.page.get_by_text("Покупайте опыт")).to_be_visible()
+        expect(self.page.get_by_text("Пополняйте баланс")).to_be_visible()
+        expect(self.page.get_by_text("Активация партнера")).to_be_visible()
+        expect(self.page.get_by_text("Покупка курса")).to_be_visible()
+        expect(self.page.get_by_text("Переход на новый уровень бонусной программы")).to_be_visible()
 
     @allure.step("Проверка блока Мои курсы")
     def check_my_courses(self):
         expect(self.page.locator("#onboard_courses")).to_be_visible()
+
+    @allure.step("Проверка партнерской ссылки")
+    def check_partner_link_button(self) -> None:
+        partner_link_button = self.page.get_by_role("button", name="Скопировать партнёрскую ссылку")
+        self.expect_clickable(locator=partner_link_button, description="Скопировать партнерскую ссылку")
+        partner_link_button.click()
+        self.check_toast(role="status", name="Партнёрская ссылка скопирована")
         
