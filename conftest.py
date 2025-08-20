@@ -29,4 +29,5 @@ def authorized_page(browser, auth_storage_state_file):
     context = browser.new_context(storage_state=auth_storage_state_file)
     page = context.new_page()
     page.goto(BASE_URL)
+    yield page
     context.close()

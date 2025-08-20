@@ -23,7 +23,6 @@ class LoginPage(BasePage):
     @allure.step("Открываем главную стрраницу")
     def open_login_page(self):
         self.open_page(BASE_URL)
-        self.wait_for_page_ready("load")
         self.click_button("Вход / Регистрация")
         self.page.wait_for_url("**/login/callback/")
         self.wait_for_page_ready("load")
@@ -48,12 +47,13 @@ class LoginPage(BasePage):
 
     @allure.step("Отображение приветственного сообщения")
     def skip_greeting_message(self):
-        self.page.mouse.click(x=10, y=10)
-        # modal = self.page.locator("#scrollableTargetModal")
-        # close_btn = modal.get_by_role("button").filter(has=modal.locator(".Close")).first
-        # expect(close_btn).to_be_visible()
-        # close_btn.close()
-
+        try:
+            modal = self.page.locator("#scrollableTargetModal")
+            modal.wait_for(state="visible", timeout=3000)
+            close_btn = modal.get_by_test_id("baseModalClose")
+            close_btn.click()
+        except Exception:
+            print("Приветственное окно не появилось в течение 3 секунд")
 
     @allure.step("Открытие главной страницы")
     def main_page_is_opened(self):
