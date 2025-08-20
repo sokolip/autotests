@@ -1,5 +1,4 @@
 from pages.login_page import LoginPage
-from datetime import sleep
 
 
 def test_login_page(page):

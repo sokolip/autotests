@@ -13,34 +13,77 @@ TEST_PASSWORD = os.getenv("TEST_PASSWORD")
 
 
 class MainPage(BasePage):
+
+    @allure.step("Открываем страницу профайла")
+    def open_profile_page(self):
+        self.open_page(url=f"{BASE_URL}/profile/me")
+
+    @allure.step("Отображение приветственного сообщения")
+    def skip_greeting_message(self):
+        try:
+            print("Ищем модальное окно...")
+            modal = self.page.locator("#scrollableTargetModal")
+
+            # Ждем появления модального окна
+            modal.wait_for(state="visible", timeout=3000)
+            print("Модальное окно найдено, ищем кнопку закрытия...")
+
+            close_btn = modal.get_by_test_id("baseModalClose")
+
+            # Ждем, что кнопка станет доступной
+            close_btn.wait_for(state="visible", timeout=2000)
+            print("Кнопка найдена, кликаем...")
+            close_btn.click()
+
+            # Ждем, что модальное окно исчезнет
+            modal.wait_for(state="hidden", timeout=2000)
+            print("Модальное окно закрыто успешно")
+
+        except Exception as e:
+            print(f"Ошибка при закрытии модального окна: {e}")
+            # Попробуем альтернативные способы закрытия
+            try:
+                # Возможно, кнопка имеет другой локатор
+                self.page.click("button[aria-label='Close']", timeout=1000)
+                print("Закрыли через aria-label")
+            except:
+                try:
+                    # Или попробуем ESC
+                    self.page.keyboard.press("Escape")
+                    print("Закрыли через ESC")
+                except:
+                    print("Не удалось закрыть модальное окно никаким способом")
+
     @allure.step("Проверка табов личного кабинета")
     def check_main_page_ui_element(self):
         expect(self.page.get_by_text(TEST_USER)).to_be_visible()
         expect(self.page.get_by_text(TEST_EMAIL)).to_be_visible()
-        self.expect_clickable(locator="//button[text()='Профиль']")
-        self.expect_clickable(locator="//button[text()='Баланс']")
-        self.expect_clickable(locator="//button[text()='Статьи']")
-        self.expect_clickable(locator="//button[text()='Бонусная программа']")
-        self.expect_clickable(locator="//button[text()='Команда']")
-        self.expect_clickable(locator="//button[text()='История']")
-        self.expect_clickable(locator="//button[text()='Заявки']")
-        self.expect_clickable(locator="//button[text()='Профиль']")
-        self.expect_clickable(locator="//button[text()='Настройки']")
+        self.expect_clickable(self.page.locator("//button[text()='Профиль']"))
+        self.expect_clickable(self.page.locator("//button[text()='Баланс']"))
+        self.expect_clickable(self.page.locator("//button[text()='Статьи']"))
+        self.expect_clickable(self.page.locator("//button[text()='Бонусная программа']"))
+        self.expect_clickable(self.page.locator("//button[text()='Команда']"))
+        self.expect_clickable(self.page.locator("//button[text()='История']"))
+        self.expect_clickable(self.page.locator("//button[text()='Заявки']"))
+        self.expect_clickable(self.page.locator("//button[text()='Профиль']"))
+        self.expect_clickable(self.page.locator("//button[text()='Настройки']"))
 
     @allure.step("Проверка переключения табов")
     def check_switch_tabs(self):
-        tabs = ["Профиль", "Баланс", "Статьи", "Бонусная программа", "Команда", "История", "Заявки", "Профиль", "Настройки"]
+        tabs = ["Баланс", "Статьи", "Бонусная программа", "Команда", "История", "Заявки", "Профиль", "Настройки"]
         for name in tabs:
-            btn = self.page.get_by_role("button", name=name)
+            btn = self.page.get_by_role("tab", name=name)
             btn.click()
-        self.page.get_by_role("button", name='Профиль').click()
+            self.page.wait_for_load_state("networkidle", timeout=4000)
 
     @allure.step("Проверка блока Подписка Plus")
     def check_subscription_plus(self):
-        self.click_button("Профиль")
+        profile_button = self.page.get_by_role("tab", name="Профиль")
+        profile_button.click()
         self.click_button("Подробнее")
         self.wait_for_text("Подписка Plus")
         self.page.mouse.click(x=10, y=10)
+        self.wait_for_text(TEST_EMAIL)
 
     @allure.step("Проверка блока с достижениями")
     def get_all_achievements(self):

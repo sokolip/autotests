@@ -1,12 +1,13 @@
 from playwright.sync_api import Page, expect
 
 
-class BasePage:
+class BasePage():
     def __init__(self, page):
         self.page = page
 
     def open_page(self, url):
         self.page.goto(url)
+        self.wait_for_page_ready("load")
 
     def wait_for_url(self, url_part: str, timeout=5000):
         self.page.wait_for_url(f"**{url_part}**", timeout=5000)
@@ -22,7 +23,7 @@ class BasePage:
 
     def click_button(self, name: str):
         button = self.page.get_by_role("button", name=name)
-        expect(button).to_be_visible()
+        button.scroll_into_view_if_needed()
         button.click()
 
     def expect_clickable(self, locator, description="элемент"):
@@ -67,3 +68,5 @@ class BasePage:
         self.expect_clickable(locator=partner_link_button, description="Скопировать партнерскую ссылку")
         partner_link_button.click()
         self.check_toast(role="status", name="Партнёрская ссылка скопирована")
+
+
