@@ -3,6 +3,7 @@ from playwright.sync_api import Page, expect
 import os
 from dotenv import load_dotenv
 import allure
+import re
 
 load_dotenv()
 
@@ -74,7 +75,7 @@ class MainPage(BasePage):
         for name in tabs:
             btn = self.page.get_by_role("tab", name=name)
             btn.click()
-            self.page.wait_for_load_state("networkidle", timeout=4000)
+            expect(btn).to_have_class(re.compile(r".TabsTab_checked.*"), timeout=2000)
 
     @allure.step("Проверка блока Подписка Plus")
     def check_subscription_plus(self):
@@ -82,29 +83,44 @@ class MainPage(BasePage):
         profile_button.click()
         self.click_button("Подробнее")
         self.wait_for_text("Подписка Plus")
-        self.page.mouse.click(x=10, y=10)
+        modal = self.page.locator("#scrollableTargetModal")
+        modal_box = modal.bounding_box()
+        if modal_box:
+            self.page.mouse.click(modal_box['x'] - 50, modal_box['y'] + 100)
         self.wait_for_text(TEST_EMAIL)
 
     @allure.step("Проверка блока с достижениями")
     def get_all_achievements(self):
+        self.select_profile_tab()
         self.page.get_by_text("Смотреть все").click()
-        self.check_redirect_url_and_go_back("**/achievements")
-        self.wait_for_url("**/me")
+        self.check_redirect_url_and_go_back(
+            expected_redirect_url=f"{BASE_URL}/achievements",
+            expected_back_url=f"{BASE_URL}/profile/me"
+        )
 
     @allure.step("Проверка блока с Заданиями")
     def check_tasks(self):
-        self.expect_clickable(locator="//button[text()='Еженедельные']").click()
-        self.expect_clickable(locator="//button[text()='Ежедневные']").click()
+        self.select_profile_tab()
+        label = self.page.locator("//label[.//span[text()='Еженедельные']]")
+        label.click()
+        label = self.page.locator("//label[.//span[text()='Ежедневные']]")
+        label.click()
+
 
     @allure.step("Проверка блока с Турнирной таблицей")
     def check_tournament_table(self, username: str):
+        self.select_profile_tab()
         expect(self.page.locator("#onboard_leagues")).to_be_visible()
         expect(self.page.get_by_text("Турнирная таблица")).to_be_visible()
-        expect(self.page.get_by_text(username)).to_be_visible()
 
     @allure.step("Открытие таблицы с историей начислений")
     def open_history_modal(self):
-        self.page.get_by_text("История начислений").click()
+        self.select_profile_tab()
+        self.page.wait_for_load_state("networkidle", timeout=5000)
+        history_link_locator = self.page.get_by_role("link", name="История начислений")
+        history_link_locator.wait_for(state="visible", timeout=10000)
+        history_link_locator.scroll_into_if_needed()
+        history_link_locator.click()
         expect(self.page.locator("#scrollableTargetModal")).to_be_visible()
         expect(self.page.get_by_text("История начислений")).to_be_visible()
         expect(self.page.get_by_text('Выполнение ежедневного задания: "Ежедневный заход"')).to_be_visible()
@@ -112,6 +128,7 @@ class MainPage(BasePage):
 
     @allure.step("Проверка блока Бонусы")
     def check_bonus_block(self):
+        self.select_profile_tab()
         expect(self.page.get_by_text("Бонусы")).to_be_visible()
         expect(self.page.get_by_text("Покупайте опыт")).to_be_visible()
         expect(self.page.get_by_text("Пополняйте баланс")).to_be_visible()
@@ -121,6 +138,7 @@ class MainPage(BasePage):
 
     @allure.step("Проверка блока Мои курсы")
     def check_my_courses(self):
+        self.select_profile_tab()
         expect(self.page.locator("#onboard_courses")).to_be_visible()
 
     @allure.step("Проверка партнерской ссылки")

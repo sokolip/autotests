@@ -7,7 +7,7 @@ class BasePage():
 
     def open_page(self, url):
         self.page.goto(url)
-        self.wait_for_page_ready("load")
+        self.page.wait_for_load_state("domcontentloaded")
 
     def wait_for_url(self, url_part: str, timeout=5000):
         self.page.wait_for_url(f"**{url_part}**", timeout=5000)
@@ -36,10 +36,13 @@ class BasePage():
     def wait_for_page_ready(self, state="load", timeout=10000):
         self.page.wait_for_load_state(state=state, timeout=timeout)
 
-    def check_redirect_url_and_go_back(self, expected_url_path: str):
-        expect(self.page).to_have_url(expected_url_path)
-        response = self.page.go_back()
-        assert response is not None, "Не удалось вернуться на предыдущую страницу"
+    def check_redirect_url_and_go_back(self, expected_redirect_url: str, expected_back_url: str):
+        expect(self.page).to_have_url(expected_redirect_url, timeout=5000)
+        # self.wait_for_page_ready(state="networkidle")
+        self.page.go_back()
+        expect(self.page).to_have_url(expected_back_url, timeout=5000)
+        # self.wait_for_page_ready(state="load")
+        # assert response is not None, "Не удалось вернуться на предыдущую страницу"
 
     def select_dropdown_option(self, section_title: str, option_text: str, *, timeout=5000):
         section = self.page.locator(f"xpath=//div[.//div[normalize-space(text())='{section_title}']]")
@@ -68,5 +71,9 @@ class BasePage():
         self.expect_clickable(locator=partner_link_button, description="Скопировать партнерскую ссылку")
         partner_link_button.click()
         self.check_toast(role="status", name="Партнёрская ссылка скопирована")
+
+    def select_profile_tab(self):
+        profile_button = self.page.get_by_role("tab", name="Профиль")
+        profile_button.click()
 
 
