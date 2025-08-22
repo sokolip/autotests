@@ -8,12 +8,14 @@ import re
 
 load_dotenv()
 BASE_URL = os.getenv("BASE_URL")
-
+BTC_PAY_TEST_URL = os.getenv("BTC_PAY_TEST_URL")
+RUB_PAY_TEST_URL = os.getenv("RUB_PAY_TEST_URL")
 
 class BalancePage(BasePage):
     @allure.step("Открытие вкладки Баланс")
-    def open(self):
-        self.page.goto(f"{BASE_URL}/me/balance")
+    def open_balance_tab(self, url=f"{BASE_URL}/profile/me"):
+        self.open_page(url=url)
+        self.page.get_by_role("tab", name="Баланс").click()
 
     @allure.step("Проверка UI элементов вкладки Баланс")
     def check_balance_page_ui(self):
@@ -23,9 +25,14 @@ class BalancePage(BasePage):
         expect(self.page.get_by_text("Списано, BL")).to_be_visible()
         expect(self.page.locator("input.Switch-Input")).to_be_checked()
         expect(self.page.get_by_text("Дополнительно спишем 1 BL")).to_be_visible()
-        expect(self.page.get_by_role("radio", name="Bitlime")).to_be_checked()
-        expect(self.page.get_by_role("radio", name="Lime")).to_be_visible()
-        expect(self.page.get_by_role("radio", name="uLime")).to_be_checked()
+        radio_button_bitlime_locator = self.page.get_by_role("radio", name="Bitlime")
+        expect(radio_button_bitlime_locator.first).to_be_checked()
+        #нужно добавить testid
+        # radio_button_ulime_locator = self.page.get_by_role("radio", name="uLime")
+        # radio_button_ulime_locator.first.click()
+        # expect(radio_button_ulime_locator.first).to_be_checked()
+        # radio_button_bitlime_locator.first.click()
+
 
     @allure.step("Проверка тоггла uLime")
     def check_toggle_ulime(self):
@@ -34,7 +41,7 @@ class BalancePage(BasePage):
         bitlime_label = self.page.locator("xpath=//label[input[@value='balanceChoiceGroup-Bitlime']]//span[text()='Bitlime']")
         expect(bitlime_label).not_to_be_visible(timeout=5000)
         toggle.click()
-        expect(bitlime_label, timeout=5000)
+        expect(bitlime_label).to_be_visible(timeout=5000)
 
     def add_currency_count(self, amount: str):
         field = self.page.get_by_placeholder("Введите необходимое количество")
@@ -46,24 +53,34 @@ class BalancePage(BasePage):
         self.page.get_by_test_id(currency_testid).click()
         self.page.get_by_test_id(method_testid).click()
         self.add_currency_count(amount)
+        self.page.locator("body").click()
         self.page.get_by_role("button", name="Пополнить баланс").click()
 
     @allure.step("Пополнение Lime-BTC")
     def top_up_lime_btc(self, amount: str):
-        self._top_up(currency_testid="currency-lime", method_testid="payment-method-btc", amount=amount)
-        #для тестового контура
-        self.page.get_by_role("button", name="Закрыть").click()
+        parent = self.page
+        with parent.expect_popup() as popup_info:
+            self._top_up(currency_testid="currency-lime", method_testid="payment-method-btc", amount=amount)
+        new_tab = popup_info.value
+        new_tab.wait_for_url(f"{BTC_PAY_TEST_URL}/*")
+        shop_name_locator = new_tab.locator("xpath=//*[@class='store-name' and text()='academy-test']")
+        expect(shop_name_locator).to_be_visible()
+        expect(new_tab.locator("#AmountDue")).to_have_text("0.00101000 BTC")
+        expect(new_tab.locator("xpath=//a[@id='PayInWallet']")).to_be_visible()
+        new_tab.close()
+        parent.bring_to_front()
 
     @allure.step("Пополнение Lime-RUB")
     def top_up_lime_rub(self, amount: str):
         parent = self.page
         with parent.expect_popup() as popup_info:
-            self._top_up(currency_testid="currency-lime ads", method_testid="payment-method-rub", amount=amount)
+            self._top_up(currency_testid="currency-lime", method_testid="payment-method-rub", amount=amount)
         new_tab = popup_info.value
-        new_tab.wait_for_load_state("domcontentloaded")
-        field = new_tab.locator("input.TextField-Input")
-        expect(field).to_be_visible()
-        expect(field).to_have_value(str(amount))
+        new_tab.wait_for_url(f"{RUB_PAY_TEST_URL}*")
+        amount_locator = new_tab.locator("input.TextField-Input[name='amount']")
+        actual_amount = amount_locator.input_value()
+        expect_amount ="100.00"
+        assert actual_amount == expect_amount, f"[FAIL] Поле с суммой должно содержать {expect_amount}, но содержит {actual_amount}"
         new_tab.close()
         parent.bring_to_front()
 

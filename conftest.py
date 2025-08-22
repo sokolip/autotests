@@ -2,6 +2,7 @@ import os
 import pytest
 from pages.login_page import LoginPage
 from dotenv import load_dotenv
+from urllib.parse import urlparse
 
 load_dotenv()
 BASE_URL = os.getenv("BASE_URL")
@@ -27,6 +28,17 @@ def auth_storage_state_file(browser):
 @pytest.fixture
 def authorized_page(browser, auth_storage_state_file):
     context = browser.new_context(storage_state=auth_storage_state_file)
+    domain = urlparse(BASE_URL).hostname
+    context.add_cookies([{
+        "name": "rewardModalWasShown",
+        "value": "false",  # строки, не bool!
+        "domain": f".{domain}",
+        "path": "/",
+        "expires": -1,
+        "httpOnly": False,
+        "secure": True,
+        "sameSite": "Lax",
+    }])
     page = context.new_page()
     page.goto(BASE_URL)
     yield page

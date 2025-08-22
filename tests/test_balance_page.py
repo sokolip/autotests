@@ -1,4 +1,5 @@
 from pages.balance_page import BalancePage
+from time import sleep
 
 amount = "100"
 section_title = "Перевод пользователю"
@@ -9,7 +10,9 @@ payee_username = "maitest"
 
 def test_balance_tab(authorized_page):
     balance_page = BalancePage(authorized_page)
-    balance_page.open()
+
+    balance_page.open_balance_tab()
+    sleep(10)
     balance_page.check_balance_page_ui()
     balance_page.check_toggle_ulime()
     balance_page.top_up_lime_btc(amount=amount)
